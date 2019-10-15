@@ -35,6 +35,6 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 
-/client_secrets.json
-/*.xlsx
-/*.csv
+client_secrets.json
+*.xlsx
+*.csv
