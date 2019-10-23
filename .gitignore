@@ -38,3 +38,6 @@ rsconnect/
 client_secrets.json
 *.xlsx
 *.csv
+*.html
+*.pdf
+*.Rproj
