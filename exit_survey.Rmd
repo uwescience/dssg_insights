@@ -1,0 +1,224 @@
+---
+title: "Exit Survey Results"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r include=FALSE}
+library(data.table)
+library(tidyverse)
+library(kableExtra)
+library(formattable)
+```
+
+```{r include=FALSE}
+source('./data_funs.R')
+```
+
+```{r include=FALSE}
+
+exit_raw <- fread("./raw_data/raw_data_DSSG_2019___Exit_Survey2019_09_12_19_06_57.csv")
+```
+
+## Prior to DSSG, what was your experiance with programming?
+
+```{r echo=F}
+
+prior <- exit_raw %>%
+  select(3:7)
+
+col_nam <- names(prior)
+
+colnames(prior) <- trimws(tstrsplit(col_nam, ">>")[[2]])
+
+keycol <- "question"
+valuecol <- "value"
+gathercols <- c("I had never done any programming", "I had programmed but not in the context of my work/research",
+"I used programming minimally in my work/research", "I used programming moderately in my work/research",          
+"I used programming extensively in my work/research") 
+
+prior_t <- prior %>%
+gather_(., keycol, valuecol, gathercols) %>%
+  group_by(question, value) %>%
+  summarise(n = n()) %>%
+  filter(value == 'Select one') %>%
+  ungroup() %>%
+  select(-value) %>%
+  mutate(per = round(n/sum(n)*100, 1))  
+
+#kable(prior_t) %>%
+#  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+#                footnote(general = " % values are percents." )
+
+prior_t %>% arrange(-n) %>%
+  mutate(percent = color_bar("#bcbddc")(per)) %>%
+  select(-per) %>%
+  kable("html", escape = F) %>%
+  kable_styling("hover", full_width = F) %>%
+  column_spec(3, width = "4cm")
+
+```
+
+## Please indicate programming experience in the following languages
+```{r include=FALSE}
+prog_ex <- exit_raw %>%
+  select(8:16)
+
+col_nam <- names(prog_ex)
+
+colnames(prog_ex) <- trimws(tstrsplit(col_nam, ">>")[[2]])
+
+keycol <- "Languages"
+valuecol <- "value"
+gathercols <- c("Python", "R", "Matlab", "Julia", "SQL",
+                "Java", "Stata/SAS", "Shell scripting, e.g. bash", "Other") 
+
+prog_ex_t <- prog_ex  %>%
+gather_(., keycol, valuecol, gathercols) %>%
+  group_by(Languages, value) %>%
+  summarise(n = n()) %>%
+  mutate(value = gsub(pattern = "<.*>", replacement = "", value),
+         perc = round(n/sum(n)*100))
+```
+
+```{r echo = FALSE}
+
+prior_dssg <- prog_ex_t %>%
+  filter(value == "Prior to the DSSG") %>%
+  select(-value) %>% data.frame()
+
+after_dssg <- prog_ex_t %>%
+  filter(value == "Now") %>%
+  select(-value) %>% data.frame()
+
+# unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
+prior_dssg  %>%  arrange(-n) %>%
+  mutate(percent = formattable::color_bar("#9ecae1")(perc)) %>%
+  select(-perc) %>%
+  kable("html", escape = F) %>%
+  kable_styling("hover", full_width = F) %>%
+  column_spec(3, width = "4cm") %>%
+  add_header_above(c("Prior to DSSG...", "", "")) %>%
+  footnote(general = "Assumption: 12 Total Respondents per language." )
+
+# unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
+```
+
+```{r echo = FALSE}
+after_dssg <- prog_ex_t %>%
+  filter(value == "Now") %>%
+  select(-value) %>% data.frame()
+
+after_dssg  %>%  arrange(-n) %>%
+  mutate(percent = formattable::color_bar("#a1d99b")(perc)) %>%
+  select(-perc) %>%
+  kable("html", escape = F) %>%
+  kable_styling("hover", full_width = F) %>%
+  column_spec(3, width = "4cm") %>%
+  add_header_above(c("Now...", "", "")) %>%
+  footnote(general = "Assumption: 12 Total Respondents per language." )
+```
+
+## Prior to DSSG were you familiar with Git version control?
+
+```{r echo = FALSE}
+git_v <- exit_raw %>%
+  select(20:21)
+
+col_nam <- names(git_v)
+
+colnames(git_v) <- trimws(tstrsplit(col_nam, ">>")[[2]])
+
+keycol <- "Prior familiarity"
+valuecol <- "value"
+gathercols <- c("Yes", "No") 
+
+git_v_t <- git_v  %>%
+gather_(., keycol, valuecol, gathercols) %>%
+  group_by(`Prior familiarity`, value) %>%
+  summarise(n = n()) %>%
+  mutate(perc = round(n/sum(n)*100)) %>%
+  filter(value == "Select one") %>% data.table()
+
+git_v_t  %>%  arrange(-n) %>%
+  mutate(percent = formattable::color_bar("#7fcdbb")(perc)) %>%
+  select(-perc, -value) %>%
+  kable("html", escape = F) %>%
+  kable_styling("hover", full_width = F) %>%
+  column_spec(3, width = "5cm") %>%
+  add_header_above(c("", "", "")) %>%
+  footnote(general = "12 Total Respondents" )
+```
+
+## After the DSSG, could you, given the URL for a project on GitHub, check out a working copy of that project, add a file called notes.txt, and commit the change?
+
+```{r echo = FALSE}
+git_v <- exit_raw %>%
+  select(22:23)
+
+col_nam <- names(git_v)
+
+colnames(git_v) <- trimws(tstrsplit(col_nam, ">>")[[2]])
+
+keycol <- "Can you do this?"
+valuecol <- "value"
+gathercols <- c("Yes", "No") 
+
+git_v_t <- git_v  %>%
+gather_(., keycol, valuecol, gathercols) %>%
+  group_by(`Can you do this?`, value) %>%
+  summarise(n = n()) %>%
+  mutate(perc = round(n/sum(n)*100)) %>%
+  filter(value == "Select one") %>% data.table()
+
+git_v_t  %>%  arrange(-n) %>%
+  mutate(percent = formattable::color_bar("#fa9fb5")(perc)) %>%
+  select(-perc, -value) %>%
+  kable("html", escape = F) %>%
+  kable_styling("hover", full_width = F) %>%
+  column_spec(3, width = "5cm") %>%
+  add_header_above(c("", "", "")) %>%
+  footnote(general = "12 Total Respondents" )
+```
+
+
+```{r echo = FALSE}
+value_dssg <- exit_raw %>%
+  select(24:40)
+
+col_nam <- names(value_dssg)
+
+colnames(value_dssg) <- trimws(tstrsplit(col_nam, ">>")[[2]])
+
+value_dssg <- value_dssg %>%
+  mutate_all(as.character)
+
+data_list <- data_mung(value_dssg, 1, 17)
+
+df_plot = do.call(bind_rows, data_list) %>%
+  select(question, `-2_perc`, `-1_perc`,`0_perc`,`1_perc`, `2_perc`)
+
+df_melted <- likert_df(df_plot, id = "question")
+
+highs<-df_melted[35:85,] %>%
+  na.omit()
+lows<-df_melted[1:34,] %>%
+  na.omit()
+
+highs <- highs[rev(rownames(highs)),] 
+```
+
+## What components of the DSSG program did you find most and least valuable? Please score each of the following on a scale of -2 to 2, where -2 indicate a negative impact on your experience and 2 indicates a positive impact.
+
+```{r, echo=FALSE, fig.height=14}
+levels<-c("-2", "-1", "0",  "1", "2")
+
+plot_fun(highs,lows, mylevels = levels, divergent = T)
+```
+
+
+
+
+
+

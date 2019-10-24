@@ -1,0 +1,387 @@
+---
+title: "Workshop Surveys"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(data.table)
+library(tidyverse)
+library(kableExtra)
+```
+
+```{r, include=FALSE}
+source('./data_funs.R')
+```
+# Workshop Outcomes
+
+
+### Some informative text.
+
+```{r include=FALSE}
+file_nms <- list.files("./raw_data/", pattern="*.csv$")
+
+# load workshop feed back files 
+wrksh_fms = intersect(list.files("./raw_data/", pattern="Workshop"), 
+                 list.files("./raw_data/", pattern="*.csv$"))
+
+temp <- lapply(file.path("./raw_data" ,wrksh_fms), fread, stringsAsFactors = FALSE, skip=1, header =T)
+
+wrksh_fms
+```
+
+# Introduction to DSSG
+
+```{r include=FALSE}
+intro_dssg <- temp[[2]]
+```
+
+
+```{r include=F}
+# looking at the likert questions 4:8
+data_list <- data_mung(df = intro_dssg,
+  r1 = 4,
+  r2 = 8)
+```
+
+```{r, include=F}
+results <- do.call(bind_rows, data_list)  %>%
+  select(question, `No gains_num`, `Small gains_num`,`Medium gains_num`,`Large gains_num`, `Huge gains_num`) %>%
+  mutate(`Q's` = c('Q1', 'Q2', 'Q3', 'Q4', 'Q5'))
+```
+
+```{r, echo=FALSE}
+table1 <- results %>%
+  select(`Q's`, `survey item`=question)
+
+kable(table1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F) 
+
+
+```
+
+```{r, echo=FALSE}
+table2 <- results %>%
+  select(`Q's`, `No gains_num`, `Small gains_num`,`Medium gains_num`,`Large gains_num`, `Huge gains_num`)
+
+kable(table2) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "Values are counts." )
+```
+
+```{r, include=FALSE}
+# select items to plot
+df_plot = do.call(bind_rows, data_list)  %>%
+  select(question, `No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`)
+
+df_melted <- likert_df(df_plot, id = "question")
+
+highs<-df_melted[6:25,] %>%
+  na.omit()
+lows<-df_melted[1:5,] %>%
+  na.omit()
+
+highs <- highs[rev(rownames(highs)),] 
+```
+
+```{r fig.height=8, echo=FALSE}
+levels<-c("No Gains", "Small Gains", "Medium Gains",  "Large Gains", "Huge Gains")
+
+plot_fun(highs,lows, mylevels = levels, divergent = T)
+```
+
+```{r, include=F}
+
+data_list_2 <- data_mung(df = intro_dssg,
+  r1 = 9,
+  r2 = 10)
+
+df_plot = do.call(bind_rows, data_list_2)  %>%
+  select(question, `2=Slightly_perc`, `3=Moderately_perc`,`4=Considerably_perc`,`5=Completely_perc`)
+
+
+df_melted_2 <- likert_df(df_plot, id = "question", lk_levels = 4)
+
+high <- df_melted_2[rev(rownames(df_melted_2)),]
+```
+
+```{r, include=F}
+results <- do.call(bind_rows, data_list_2)  %>%
+  select(question, `2=Slightly_num`, `3=Moderately_num`,`4=Considerably_num`,`5=Completely_num`) %>%
+  mutate(`Q's` = c('Q1', 'Q2'))
+```
+
+```{r, echo=FALSE}
+table3 <- results %>%
+  select(`Q's`, `survey item`=question)
+
+kable(table3) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+```{r echo=FALSE}
+table4 <- results %>%
+  select(`Q's`, `2=Slightly_num`, `3=Moderately_num`,`4=Considerably_num`,`5=Completely_num`)
+
+kable(table4) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "Values are counts." )
+```
+
+
+```{r fig.height=8, echo=FALSE}
+mylevels<-c("Slighty", "Moderately", "Considerably",  "Completely")
+
+plot_fun(high, mylevels=mylevels, divergent = F, lk_levels = 4)
+
+```
+
+
+# Ethical Agency in Data Rich Organizations
+
+```{r, include=FALSE}
+ethics <- temp[[1]]
+```
+
+```{r,  include=F}
+# looking at the likert questions 4:8
+data_list <- data_mung(df = ethics,
+  r1 = 4,
+  r2 = 9)
+```
+
+```{r, include=F}
+results_all <- do.call(bind_rows, data_list) 
+names(results_all)
+results <-  results_all %>%
+  select(question, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`,`No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`, `1=Not at all_perc`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`) %>%
+  mutate(`Q's` = c('Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'))
+```
+
+```{r, echo=FALSE}
+table1 <- results %>%
+  select(`Q's`, `survey item`=question)
+
+kable(table1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+
+```
+
+```{r, echo=FALSE}
+table_q1 <- results %>%
+  filter(`Q's` == 'Q1') %>%
+  select(`Q's`, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`)
+
+kable(table_q1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = " % values are percents." )
+```
+
+```{r, echo=FALSE}
+table_q2 <- results %>%
+  filter(`Q's` %in% c('Q2', 'Q3', 'Q4')) %>%
+  select(`Q's`, `No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`)
+
+kable(table_q2) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
+```{r fig.height=8, echo=FALSE}
+table_q3 <- results %>%
+  filter(`Q's` %in% c('Q5','Q6')) %>%
+  select(`Q's`, `1=Not at all_perc`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`)
+
+kable(table_q3) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
+# Preparing for Stakeholder Engagement
+
+```{r include=FALSE}
+wrksh_fms
+engagement <- temp[[3]]
+```
+
+```{r,  include=F}
+# looking at the likert questions 4:8
+data_list <- data_mung(df = engagement,
+  r1 = 4,
+  r2 = 16)
+```
+
+```{r, include=F}
+results_all <- do.call(bind_rows, data_list) 
+names(results_all)
+results <-  results_all %>%
+  select(question, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`,`No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`, `1=Not at all_perc`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`) %>%
+  mutate(`Q's` = paste0("Q", seq(1:13)))
+```
+
+```{r, echo=FALSE}
+table1 <- results %>%
+  select(`Q's`, `survey item`=question)
+
+kable(table1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+
+```
+
+```{r, echo=FALSE}
+table_q1 <- results %>%
+  filter(`Q's` == 'Q1') %>%
+  select(`Q's`, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`)
+
+kable(table_q1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = " % values are percents." )
+```
+
+```{r, echo=FALSE}
+table_q2 <- results %>%
+  filter(`Q's` %in% c('Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10','Q11')) %>%
+  select(`Q's`, `No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`)
+
+kable(table_q2) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
+```{r fig.height=8, echo=FALSE}
+table_q3 <- results %>%
+  filter(`Q's` %in% c('Q12','Q13')) %>%
+  select(`Q's`, `1=Not at all_perc`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`)
+
+kable(table_q3) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
+
+# Stakeholder Analysis and Speculative Ethics
+```{r include=FALSE}
+wrksh_fms
+stake <- temp[[4]]
+```
+
+```{r,  include=F}
+# looking at the likert questions 4:8
+data_list <- data_mung(df = stake,
+  r1 = 4,
+  r2 = 15)
+```
+
+```{r, include=F}
+results_all <- do.call(bind_rows, data_list) 
+names(results_all)
+
+results <-  results_all %>%
+  select(question, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`,`No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`, `1=Not at all_perc`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`) %>%
+  mutate(`Q's` = paste0("Q", seq(1:12)))
+```
+
+```{r, echo=FALSE}
+table1 <- results %>%
+  select(`Q's`, `survey item`=question)
+
+kable(table1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+
+```
+
+```{r, echo=FALSE}
+table_q1 <- results %>%
+  filter(`Q's` == 'Q1') %>%
+  select(`Q's`, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`)
+
+kable(table_q1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = " % values are percents." )
+```
+
+```{r echo=FALSE}
+table_q2 <- results %>%
+  filter(`Q's` %in% c('Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10')) %>%
+  select(`Q's`, `No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`)
+
+kable(table_q2) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
+```{r fig.height=8, echo=FALSE}
+table_q3 <- results %>%
+  filter(`Q's` %in% c('Q11','Q12')) %>%
+  select(`Q's`, `1=Not at all_perc`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`)
+
+kable(table_q3) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
+# Team Development Part 1
+
+```{r include=FALSE}
+wrksh_fms
+team <- temp[[5]]
+```
+
+```{r   include=F}
+# looking at the likert questions 4:8
+data_list <- data_mung(df = team,
+  r1 = 4,
+  r2 = 12)
+```
+
+```{r include=F}
+results_all <- do.call(bind_rows, data_list) 
+names(results_all)
+
+results <-  results_all %>%
+  select(question, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`,`No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`) %>%
+  mutate(`Q's` = paste0("Q", seq(1:9)))
+```
+
+```{r, echo=FALSE}
+table1 <- results %>%
+  select(`Q's`, `survey item`=question)
+
+kable(table1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F)
+
+
+```
+
+```{r, echo=FALSE}
+table_q1 <- results %>%
+  filter(`Q's` == 'Q1') %>%
+  select(`Q's`, `2=A little familiar_perc`, `3=Moderately familiar_perc`, `4=Very familiar_perc`)
+
+kable(table_q1) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = " % values are percents." )
+```
+
+```{r, echo=FALSE}
+table_q2 <- results %>%
+  filter(`Q's` %in% c('Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7')) %>%
+  select(`Q's`, `No gains_perc`, `Small gains_perc`,`Medium gains_perc`,`Large gains_perc`, `Huge gains_perc`)
+
+kable(table_q2) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
+```{r fig.height=8, echo=FALSE}
+table_q3 <- results %>%
+  filter(`Q's` %in% c('Q8','Q9')) %>%
+  select(`Q's`, `2=Slightly_perc`, `3=Moderately_perc`, `4=Considerably_perc`, `5=Completely_perc`)
+
+kable(table_q3) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>%
+                footnote(general = "% Values are percents." )
+```
+
